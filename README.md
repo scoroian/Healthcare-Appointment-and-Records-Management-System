@@ -4,12 +4,11 @@ Este repositorio contiene la **API Final Practice: "Healthcare Appointment and R
 
 ## Requisitos
 
-- **Lenguaje**: El de tu preferencia (Node.js, Python, Java, etc.).
-- **Dependencias**: Dependen de la tecnología que elijas (Express.js, Flask, Spring Boot, etc.).
-- **Base de Datos**: MySQL, PostgreSQL, MongoDB, etc. (dependiendo de tu preferencia).
+- **Lenguaje**: Node.js.
+- **Dependencias**: Express.js.
+- **Base de Datos**: MySQL.
 - **Herramientas adicionales**: 
   - Postman (o similar) para probar la API.
-  - Docker (opcional).
 
 ## Estructura del Proyecto
 
