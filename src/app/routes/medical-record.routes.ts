@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { Container } from 'typedi';
-import { MedicalRecordController } from '../MedicalRecord/medical-record.controller';
+import { MedicalRecordController } from '../medicalRecord/medical-record.controller';
 import { authenticateJWT } from '../middleware/middleware.service';
 import { authorizeRoles } from '../middleware/middleware.roles.service';
 

@@ -3,6 +3,7 @@ import { Service } from 'typedi';
 import userRoutes from '../../app/routes/user.routes';
 import appointmentRoutes from '../../app/routes/appointment.routes';
 import medicalRecordRoutes from '../../app/routes/medical-record.routes';
+import specialtyRoutes from "../../app/routes/specialty.routes";
 
 @Service()
 export class Api {
@@ -17,6 +18,8 @@ export class Api {
     this.apiRouter.use('/appointments', appointmentRoutes);
     // Registrar las rutas de registros medicos
     this.apiRouter.use('/medical-records', medicalRecordRoutes);
+    // Registrar las rutas de especialidades
+    this.apiRouter.use('/specialties', specialtyRoutes);
   }
 
   getApiRouter(): Router {
