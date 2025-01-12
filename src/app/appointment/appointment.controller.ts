@@ -1,16 +1,21 @@
 import { Service } from 'typedi';
 import { Request, Response } from 'express';
 import { AppointmentService } from './appointment.service';
+import {NotificationService} from "../notification/notification.service";
 
 @Service()
 export class AppointmentController {
-    constructor(private readonly appointmentService: AppointmentService) {}
+    constructor(
+        private readonly appointmentService: AppointmentService,
+        private readonly notificationService: NotificationService
+    ) {}
 
     async createAppointment(req: Request, res: Response): Promise<void> {
         try {
             const appointment = req.body;
             const result = await this.appointmentService.createAppointment(appointment);
 
+            this.notificationService.sendNotification(appointment.patientId, `Your appointment with doctor ${appointment.doctorId} on ${appointment.dateTime} has been confirmed.`);
             res.status(201).json({ message: 'Appointment created successfully' });
 
         } catch (error: unknown) {
@@ -47,7 +52,11 @@ export class AppointmentController {
 
             // Realizar la actualización
             await this.appointmentService.updateAppointment(Number(id), updates);
-
+            // Enviar notificación al paciente sobre el cambio
+            this.notificationService.sendNotification(
+                appointment?.patientId,
+                `Your appointment has been updated: ${JSON.stringify(updates)}`
+            );
             // Responder con éxito
             res.status(200).json({ message: 'Appointment updated successfully' });
         } catch (error: unknown) {
@@ -59,7 +68,15 @@ export class AppointmentController {
         try {
             const { id } = req.params;
 
+            const appointment = await this.appointmentService.getAppointmentById(Number(id));
+            if (!appointment) {
+                res.status(404).json({ message: 'Appointment not found' });
+            }
+
             const result = await this.appointmentService.deleteAppointment(Number(id));
+
+            // Enviar notificación al paciente sobre la cancelación
+            this.notificationService.sendNotification(appointment?.patientId, `Your appointment with doctor ${appointment?.doctorId} has been canceled.`);
 
             res.status(200).json({ message: 'Appointment deleted successfully' });
 
