@@ -96,7 +96,7 @@ export class DatabaseService {
                                                 doctorId INTEGER NOT NULL,
                                                 dateTime DATETIME NOT NULL,
                                                 reason TEXT,
-                                                status TEXT DEFAULT 'confirmed', -- confirmed, canceled, rescheduled
+                                                status TEXT DEFAULT 'confirmed',
                                                 FOREIGN KEY(patientId) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(doctorId) REFERENCES users(id) ON DELETE CASCADE
         );
@@ -131,26 +131,60 @@ export class DatabaseService {
     // Crear tabla de asociación de doctores con especialidades
     await this.db!.exec(`
       CREATE TABLE IF NOT EXISTS doctor_specialties (
-        doctorId INTEGER NOT NULL,
-        specialtyId INTEGER NOT NULL,
-        FOREIGN KEY(doctorId) REFERENCES users(id) ON DELETE CASCADE,
+                                                      doctorId INTEGER NOT NULL,
+                                                      specialtyId INTEGER NOT NULL,
+                                                      FOREIGN KEY(doctorId) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(specialtyId) REFERENCES specialties(id) ON DELETE CASCADE,
         PRIMARY KEY(doctorId, specialtyId)
-      );
+        );
     `);
 
-    // Crear tabla de auditoría
+    // Crear triggers para validar roles
     await this.db!.exec(`
-      CREATE TABLE IF NOT EXISTS audits (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        userId INTEGER NOT NULL,
-        action TEXT NOT NULL,
-        resource TEXT NOT NULL,
-        resourceId INTEGER,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE
-      );
-    `);
+    CREATE TRIGGER IF NOT EXISTS validate_medical_record_roles
+    BEFORE INSERT ON medical_records
+    FOR EACH ROW
+    BEGIN
+      SELECT CASE
+        WHEN (SELECT role FROM users WHERE id = NEW.doctorId) != 'doctor' THEN
+          RAISE(ABORT, 'Invalid doctorId: User is not a doctor')
+      END;
+
+      SELECT CASE
+        WHEN (SELECT role FROM users WHERE id = NEW.patientId) != 'patient' THEN
+          RAISE(ABORT, 'Invalid patientId: User is not a patient')
+      END;
+    END;
+  `);
+
+    await this.db!.exec(`
+    CREATE TRIGGER IF NOT EXISTS validate_appointment_roles
+    BEFORE INSERT ON appointments
+    FOR EACH ROW
+    BEGIN
+      SELECT CASE
+        WHEN (SELECT role FROM users WHERE id = NEW.doctorId) != 'doctor' THEN
+          RAISE(ABORT, 'Invalid doctorId: User is not a doctor')
+      END;
+
+      SELECT CASE
+        WHEN (SELECT role FROM users WHERE id = NEW.patientId) != 'patient' THEN
+          RAISE(ABORT, 'Invalid patientId: User is not a patient')
+      END;
+    END;
+  `);
+
+    await this.db!.exec(`
+    CREATE TRIGGER IF NOT EXISTS validate_doctor_specialty_roles
+    BEFORE INSERT ON doctor_specialties
+    FOR EACH ROW
+    BEGIN
+      SELECT CASE
+        WHEN (SELECT role FROM users WHERE id = NEW.doctorId) != 'doctor' THEN
+          RAISE(ABORT, 'Invalid doctorId: User is not a doctor')
+      END;
+    END;
+  `);
 
     await this.closeDatabase();
     console.log('Base de datos inicializada con éxito.');
