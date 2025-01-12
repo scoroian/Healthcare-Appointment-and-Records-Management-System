@@ -16,7 +16,7 @@ export function authenticateJWT(
                 console.log('JWT Error:', err.message);
                 return res.sendStatus(403); // Forbidden
             }
-            (req as any).user = user;
+            (req as any).user = user; // Adjuntar el usuario al objeto de la solicitud
             next();
         });
     } else {
