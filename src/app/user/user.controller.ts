@@ -34,7 +34,7 @@ export class UserController {
             if (isValid) {
                 // Incluye el rol en el token JWT
                 const token = jwt.sign(
-                    { username: user?.username, role: user?.role }, // Agregamos `role`
+                    { username: user?.username, role: user?.role, id:user?.id }, // Agregamos `role`
                     config.user_sessions.secret,
                     { expiresIn: '1h' }
                 );
