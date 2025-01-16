@@ -123,9 +123,14 @@ describe('DatabaseService', () => {
       await databaseService.initializeDatabase();
 
       // Check calls to exec (tables creation)
-      expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS company_types'));
-      expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS companies'));
+      expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS appointments'));
       expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS audits'));
+      expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS departments'));
+      expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS doctor_departments'));
+      expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS doctor_specialties'));
+      expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS medical_records'));
+      expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS specialties'));
+      expect(dbMock.exec).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS user'));
       expect(dbMock.close).toHaveBeenCalledTimes(1);
     });
   });

@@ -17,12 +17,12 @@ export class AppointmentController {
             const result = await this.appointmentService.createAppointment(appointment);
 
             // Registrar auditoría
-            await logAuditAction(req, 'CREATE', 'Appointment', appointment.id);
+            await logAuditAction(req, 'CREATE', 'Appointment', appointment?.id);
 
             // Enviar notificación al paciente
             this.notificationService.sendNotification(
                 appointment.patientId,
-                `Your appointment with doctor ${appointment.doctorId} on ${appointment.dateTime} has been confirmed.`
+                `Your appointment with doctor ${appointment?.doctorId} on ${appointment?.dateTime} has been confirmed.`
             );
 
             res.status(201).json({ message: 'Appointment created successfully' });
