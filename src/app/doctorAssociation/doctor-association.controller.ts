@@ -1,6 +1,7 @@
 import { Service } from 'typedi';
 import { Request, Response } from 'express';
 import { DoctorAssociationService } from './doctor-association.service';
+import {logAuditAction} from "../middleware/middleware.audit";
 
 @Service()
 export class DoctorAssociationController {
@@ -11,6 +12,9 @@ export class DoctorAssociationController {
             const { doctorId, specialtyId } = req.body;
 
             const result = await this.doctorAssociationService.assignSpecialtyToDoctor(doctorId, specialtyId);
+
+            // Registrar auditoría
+            await logAuditAction(req, 'ASIGN-SPECIALTY', 'Doctor: ' + doctorId, specialtyId);
 
             res.status(201).json({ message: 'Specialty assigned to doctor successfully' });
 
@@ -24,6 +28,9 @@ export class DoctorAssociationController {
             const { doctorId, departmentId } = req.body;
 
             const result = await this.doctorAssociationService.assignDepartmentToDoctor(doctorId, departmentId);
+
+            // Registrar auditoría
+            await logAuditAction(req, 'ASIGN-DEPARTMENT', 'Doctor: ' + doctorId, departmentId);
 
             res.status(201).json({ message: 'Department assigned to doctor successfully' });
 

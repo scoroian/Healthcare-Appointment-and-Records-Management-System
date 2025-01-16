@@ -6,6 +6,7 @@ import medicalRecordRoutes from '../../app/routes/medical-record.routes';
 import specialtyRoutes from "../../app/routes/specialty.routes";
 import departmentRoutes from "../../app/routes/department.routes";
 import doctorAssociationRoutes from "../../app/routes/doctor-association.routes";
+import auditRoutes from "../../app/routes/audit.routes";
 
 @Service()
 export class Api {
@@ -26,6 +27,8 @@ export class Api {
     this.apiRouter.use('/departments', departmentRoutes);
     // Registrar las rutas de asociacion de doctores a departamentos y especialidades
     this.apiRouter.use('/doctor-associations', doctorAssociationRoutes);
+    // Registrar las rutas de auditoria
+    this.apiRouter.use('/audits', auditRoutes);
   }
 
   getApiRouter(): Router {

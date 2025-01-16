@@ -1,6 +1,7 @@
 import { Service } from 'typedi';
 import { Request, Response } from 'express';
 import { DepartmentService } from './department.service';
+import { logAuditAction } from '../middleware/middleware.audit';
 
 @Service()
 export class DepartmentController {
@@ -11,8 +12,10 @@ export class DepartmentController {
             const department = req.body;
             const result = await this.departmentService.createDepartment(department);
 
-            res.status(201).json({ message: 'Department created successfully' });
+            // Registrar auditoría
+            await logAuditAction(req, 'CREATE', 'Department', result);
 
+            res.status(201).json({ message: 'Department created successfully' });
         } catch (error: unknown) {
             res.status(500).json({ error: (error as Error).message });
         }
@@ -53,6 +56,10 @@ export class DepartmentController {
             }
 
             await this.departmentService.updateDepartment(Number(id), updates);
+
+            // Registrar auditoría
+            await logAuditAction(req, 'UPDATE', 'Department', Number(id));
+
             res.status(200).json({ message: 'Department updated successfully' });
         } catch (error: unknown) {
             res.status(500).json({ error: (error as Error).message });
@@ -69,6 +76,10 @@ export class DepartmentController {
             }
 
             await this.departmentService.deleteDepartment(Number(id));
+
+            // Registrar auditoría
+            await logAuditAction(req, 'DELETE', 'Department', Number(id));
+
             res.status(200).json({ message: 'Department deleted successfully' });
         } catch (error: unknown) {
             res.status(500).json({ error: (error as Error).message });

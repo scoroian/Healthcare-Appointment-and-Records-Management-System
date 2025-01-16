@@ -1,6 +1,7 @@
 import { Service } from 'typedi';
 import { Request, Response } from 'express';
 import { SpecialtyService } from './specialty.service';
+import {logAuditAction} from "../middleware/middleware.audit";
 
 @Service()
 export class SpecialtyController {
@@ -10,6 +11,9 @@ export class SpecialtyController {
         try {
             const specialty = req.body;
             const result = await this.specialtyService.createSpecialty(specialty);
+
+            // Registrar auditoría
+            await logAuditAction(req, 'CREATE', 'Specialty', result);
 
             res.status(201).json({ message: 'Specialty created successfully' });
 
@@ -53,6 +57,10 @@ export class SpecialtyController {
             }
 
             await this.specialtyService.updateSpecialty(Number(id), updates);
+
+            // Registrar auditoría
+            await logAuditAction(req, 'UPDATE', 'Specialty', Number(id));
+
             res.status(200).json({ message: 'Specialty updated successfully' });
         } catch (error: unknown) {
             res.status(500).json({ error: (error as Error).message });
@@ -69,6 +77,10 @@ export class SpecialtyController {
             }
 
             await this.specialtyService.deleteSpecialty(Number(id));
+
+            // Registrar auditoría
+            await logAuditAction(req, 'DELETE', 'Specialty', Number(id));
+
             res.status(200).json({ message: 'Specialty deleted successfully' });
         } catch (error: unknown) {
             res.status(500).json({ error: (error as Error).message });

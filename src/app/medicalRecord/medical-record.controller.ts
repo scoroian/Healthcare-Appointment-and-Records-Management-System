@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { MedicalRecordService } from './medical-record.service';
 import {MedicalRecord} from "./medical-record.model";
 import {NotificationService} from "../notification/notification.service";
+import {logAuditAction} from "../middleware/middleware.audit";
 
 @Service()
 export class MedicalRecordController {
@@ -14,6 +15,9 @@ export class MedicalRecordController {
         try {
             const record = req.body;
             const result = await this.medicalRecordService.createMedicalRecord(record);
+
+            // Registrar auditoría
+            await logAuditAction(req, 'CREATE', 'Medical record', result);
 
             this.notificationService.sendNotification(
                 record.patientId,
@@ -57,6 +61,9 @@ export class MedicalRecordController {
 
             await this.medicalRecordService.updateMedicalRecord(Number(id), updates);
 
+            // Registrar auditoría
+            await logAuditAction(req, 'UPDATE', 'Medical record', Number(id));
+
             // Enviar notificación al paciente sobre la actualización
             this.notificationService.sendNotification(
                 record?.patientId,
@@ -79,6 +86,9 @@ export class MedicalRecordController {
             }
 
             await this.medicalRecordService.deleteMedicalRecord(Number(id));
+
+            // Registrar auditoría
+            await logAuditAction(req, 'DELETE', 'Medical record', Number(id));
 
             // Enviar notificación al paciente sobre la eliminación
             this.notificationService.sendNotification(

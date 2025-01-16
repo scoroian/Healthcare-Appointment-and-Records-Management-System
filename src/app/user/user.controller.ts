@@ -3,6 +3,7 @@ import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { UserService } from './user.service';
 import { config } from '../../config/environment';
+import {logAuditAction} from "../middleware/middleware.audit";
 
 @Service()
 export class UserController {
@@ -83,6 +84,10 @@ export class UserController {
             }
 
             const result = await this.userService.updateUser(username, updates);
+
+            // Registrar auditoría
+            await logAuditAction(req, 'UPDATE', 'User', user?.id);
+
             res.status(200).json({ message: 'User updated successfully' });
 
         } catch (error: unknown) {
@@ -94,9 +99,19 @@ export class UserController {
         try {
             const { username } = req.params;
 
-            const result = await this.userService.deleteUser(username);
-            res.status(200).json({ message: 'User deleted successfully' });
+            // Buscar al usuario que se desea eliminar
+            const user = await this.userService.getUserByUsername(username);
+            if (!user) {
+                res.status(404).json({ message: 'User not found' });
+            }
 
+            // Eliminar al usuario
+            await this.userService.deleteUser(username);
+
+            // Registrar auditoría
+            await logAuditAction(req, 'DELETE', 'User', user?.id);
+
+            res.status(200).json({ message: 'User deleted successfully' });
         } catch (error: unknown) {
             res.status(500).json({ error: (error as Error).message });
         }

@@ -1,7 +1,8 @@
 import { Service } from 'typedi';
 import { Request, Response } from 'express';
 import { AppointmentService } from './appointment.service';
-import {NotificationService} from "../notification/notification.service";
+import { NotificationService } from '../notification/notification.service';
+import { logAuditAction } from '../middleware/middleware.audit';
 
 @Service()
 export class AppointmentController {
@@ -15,9 +16,16 @@ export class AppointmentController {
             const appointment = req.body;
             const result = await this.appointmentService.createAppointment(appointment);
 
-            this.notificationService.sendNotification(appointment.patientId, `Your appointment with doctor ${appointment.doctorId} on ${appointment.dateTime} has been confirmed.`);
-            res.status(201).json({ message: 'Appointment created successfully' });
+            // Registrar auditoría
+            await logAuditAction(req, 'CREATE', 'Appointment', appointment.id);
 
+            // Enviar notificación al paciente
+            this.notificationService.sendNotification(
+                appointment.patientId,
+                `Your appointment with doctor ${appointment.doctorId} on ${appointment.dateTime} has been confirmed.`
+            );
+
+            res.status(201).json({ message: 'Appointment created successfully' });
         } catch (error: unknown) {
             res.status(500).json({ error: (error as Error).message });
         }
@@ -26,8 +34,7 @@ export class AppointmentController {
     async getAppointments(req: Request, res: Response): Promise<void> {
         try {
             const { role, id } = (req as any).user;
-            console.log(role)
-            console.log(id)
+
             const appointments =
                 role === 'admin'
                     ? await this.appointmentService.getAllAppointments()
@@ -52,12 +59,16 @@ export class AppointmentController {
 
             // Realizar la actualización
             await this.appointmentService.updateAppointment(Number(id), updates);
+
+            // Registrar auditoría
+            await logAuditAction(req, 'UPDATE', 'Appointment', Number(id));
+
             // Enviar notificación al paciente sobre el cambio
             this.notificationService.sendNotification(
                 appointment?.patientId,
                 `Your appointment has been updated: ${JSON.stringify(updates)}`
             );
-            // Responder con éxito
+
             res.status(200).json({ message: 'Appointment updated successfully' });
         } catch (error: unknown) {
             res.status(500).json({ error: (error as Error).message });
@@ -73,13 +84,18 @@ export class AppointmentController {
                 res.status(404).json({ message: 'Appointment not found' });
             }
 
-            const result = await this.appointmentService.deleteAppointment(Number(id));
+            await this.appointmentService.deleteAppointment(Number(id));
+
+            // Registrar auditoría
+            await logAuditAction(req, 'DELETE', 'Appointment', Number(id));
 
             // Enviar notificación al paciente sobre la cancelación
-            this.notificationService.sendNotification(appointment?.patientId, `Your appointment with doctor ${appointment?.doctorId} has been canceled.`);
+            this.notificationService.sendNotification(
+                appointment?.patientId,
+                `Your appointment with doctor ${appointment?.doctorId} has been canceled.`
+            );
 
             res.status(200).json({ message: 'Appointment deleted successfully' });
-
         } catch (error: unknown) {
             res.status(500).json({ error: (error as Error).message });
         }

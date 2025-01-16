@@ -223,6 +223,19 @@ export class DatabaseService {
         END;
     `);
 
+    // Crear tabla de auditoría
+    await this.db!.exec(`
+      CREATE TABLE IF NOT EXISTS audits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER NOT NULL,
+        action TEXT NOT NULL,
+        resource TEXT NOT NULL,
+        resourceId INTEGER,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
     await this.closeDatabase();
     console.log('Base de datos inicializada con éxito.');
   }
